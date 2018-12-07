@@ -1,0 +1,77 @@
+- name: Add apt key for Debian
+  apt_key: url=http://nginx.org/keys/nginx_signing.key state=present
+
+- name: Install nginx repo
+  apt_repository:
+    filename: nginx
+    repo: "deb https://nginx.org/packages/ubuntu/ {{ ansible_distribution_release }} nginx"
+    update_cache: yes
+
+- name: Install nginx
+  apt: name=nginx state=present
+
+- command: openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048 creates=/etc/ssl/certs/dhparam.pem
+
+- name: Create self-signed certificate, if configured.
+  command: >
+    openssl req -x509 -nodes -subj '/CN=*.loc' -days 3650
+    -newkey rsa:4096 -sha256 -keyout /etc/ssl/certs/nginx.key -out /etc/ssl/certs/nginx.crt
+    creates=/etc/ssl/certs/nginx.crt
+
+- file: path=/etc/nginx/conf.d/default.conf state=absent
+
+- name: prepare main config
+  template:
+    src: main.conf.j2
+    dest: "/etc/nginx/conf.d/001-main.conf"
+  notify: reload nginx
+
+- name: prepare upstreams
+  template:
+    src: upstreams.j2
+    dest: "/etc/nginx/conf.d/000-upstreams.conf"
+  notify: reload nginx
+
+- name: prepare empty vhosts
+  template:
+    src: empty.j2
+    dest: "/etc/nginx/conf.d/zzz-default-vhost.conf"
+  notify: reload nginx
+
+
+
+
+- set_fact:
+    php_directory: /home/{{ main_user }}/workspace/tools/php
+
+
+- name: Create php directory
+  file:
+    path: "{{ php_directory }}"
+    group: "{{ main_user }}"
+    owner: "{{ main_user }}"
+    state: directory
+    recurse: true
+
+
+- name: setup php vhost
+  template:
+    src: vhost-php.j2
+    dest: "{{ php_directory }}/.nginx.conf"
+  notify: reload nginx
+
+- name: Prepare list of php versions
+  template:
+    src: php/index.php
+    dest: "{{ php_directory }}/index.php"
+
+- template:
+    src: php/info.php
+    dest: "{{ php_directory }}/info.php"
+
+- template:
+    src: php/opcache.php
+    dest: "{{ php_directory }}/opcache.php"
+
+- name: Ensure nginx is enabled and will start on boot.
+  service: name=nginx state=started enabled=yes

@@ -1,0 +1,16 @@
+- name: setup multi php environment
+  hosts: localhost
+  vars_files:
+    - vars/main.yml
+    - vars/php.yml
+    - vars/mysql.yml
+  roles:
+    - { role: basic, become: true, tags: basic }
+    - { role: docker, become: true, tags: docker }
+    - { role: nginx, become: true, tags: nginx }
+    - { role: mailhog, become: true, tags: mailhog }
+    - { role: php, become: true, tags: php }
+    - { role: composer, become: true, tags: composer }
+    - { role: mysql, become: true, tags: mysql }
+    - { role: pma, become: true, tags: pma }
+    - { role: network, become: true, tags: network }

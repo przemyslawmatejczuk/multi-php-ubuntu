@@ -1,0 +1,127 @@
+- apt:
+    name:
+      - build-essential
+      - libxml2-dev
+      - libcurl4-openssl-dev
+      - libssl-dev
+      - libbz2-dev
+      - libjpeg-turbo8-dev
+      - libbison-dev
+      - libpng-dev
+      - libfreetype6-dev
+      - libc-client-dev
+      - libkrb5-dev
+      - libmcrypt-dev
+      - libxslt-dev
+      - autoconf
+      - libmagickwand-dev
+      - libmysqlclient-dev
+      - libzip-dev
+    state: present
+
+- import_tasks: openssl.yml
+
+- name: Register phpfarm
+  stat: path=/opt/phpfarm/build.xml
+  register: phpfarm_file
+  check_mode: no
+
+- git: repo=https://github.com/fpoirotte/phpfarm.git dest=/opt/phpfarm depth=1
+  when: phpfarm_file.stat.exists == False
+
+- name: Create phpfarm custom settings directory
+  file: path=/opt/phpfarm/custom state=directory
+
+- name: Create php socket/pid directory
+  file: path=/var/run/php state=directory
+
+- name: "Install phpfarm options"
+  template:
+    src: options.sh.j2
+    dest: "/opt/phpfarm/custom/options.sh"
+
+- file: path=/opt/phpfarm/custom/php.ini state=absent
+
+- name: "Install phpfarm options for php-5.5"
+  template:
+    src: options-5.5+.sh.j2
+    dest: "/opt/phpfarm/custom/options-5.5.sh"
+
+- name: "Install phpfarm options for php-5.6"
+  template:
+    src: options-5.5+.sh.j2
+    dest: "/opt/phpfarm/custom/options-5.6.sh"
+
+- name: "Install phpfarm options for php-7"
+  template:
+    src: options-5.5+.sh.j2
+    dest: "/opt/phpfarm/custom/options-7.sh"
+
+- file: src=/usr/include/x86_64-linux-gnu/curl dest=/usr/local/include/curl state=link
+
+- name: compile php versions
+  include_tasks: phpfarm.yml
+  with_items: "{{ php_versions }}"
+  loop_control:
+    loop_var: php
+
+- name: "Install php-fpm restart script"
+  template:
+    src: php-fpm-restart.sh.j2
+    dest: "/usr/local/bin/php-fpm-restart"
+    mode: 700
+    owner: root
+    group: root
+
+- name: Create php configs dir
+  file: path=/opt/phpfarm/inst/configs state=directory
+
+- name: Create php versions configs dir
+  file: path="/opt/phpfarm/inst/configs/{{ php.version }}" state=directory
+  with_items: "{{ php_versions }}"
+  loop_control:
+    loop_var: php
+
+- name: Create php sessions dir
+  file: path=/opt/phpfarm/inst/sessions state=directory mode=0777
+
+- name: Create php versions sessions dir
+  file: path="/opt/phpfarm/inst/sessions/{{ php.version }}" state=directory mode=0777
+  with_items: "{{ php_versions }}"
+  loop_control:
+    loop_var: php
+
+- name: "Copy global php.ini"
+  template:
+    src: php.ini-global.j2
+    dest: "/opt/phpfarm/inst/configs/global.ini"
+  notify:
+    - restart php-fpms
+
+- file: src=/opt/phpfarm/inst/configs/global.ini dest="/opt/phpfarm/inst/configs/{{ php.version }}/global.ini" state=link
+  with_items: "{{ php_versions }}"
+  loop_control:
+    loop_var: php
+  notify:
+    - restart php-fpms
+
+- name: Create php.ini by version
+  template:
+    src: php.ini-by-version.j2
+    dest: "/opt/phpfarm/inst/configs/{{ php.version }}/php.ini"
+  with_items: "{{ php_versions }}"
+  loop_control:
+    loop_var: php
+  notify:
+    - restart php-fpms
+
+- command: "/opt/phpfarm/inst/bin/switch-phpfarm {{ default_php }}"
+  changed_when: false
+
+- file: src=/opt/phpfarm/inst/current/bin/php dest=/usr/local/bin/php state=link
+
+- meta: flush_handlers
+
+- file: src=/var/run/php/php{{ default_php }}-fpm.sock dest=/var/run/php-fpm.sock state=link
+
+- include_tasks: delete-old-php.yml

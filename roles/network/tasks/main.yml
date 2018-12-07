@@ -1,0 +1,14 @@
+- name: "systemd-resolved fix"
+  lineinfile: "dest=/etc/systemd/resolved.conf regexp='^DNS=127.0.0.1' line='DNS=127.0.0.1' state=present"
+  notify: "restart systemd-resolved"
+
+- meta: flush_handlers
+
+- name: install dnsmasq
+  apt: name=dnsmasq state=present
+
+- name: "setup"
+  template:
+    src: main.conf
+    dest: "/etc/dnsmasq.d/main.conf"
+  notify: restart dnsmasq

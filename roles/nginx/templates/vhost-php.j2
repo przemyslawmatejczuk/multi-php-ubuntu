@@ -1,0 +1,25 @@
+server {
+    listen 80;
+    server_name php.loc;
+
+    root {{ php_directory }};
+    index index.php;
+
+    location / {
+        fastcgi_pass unix:/var/run/php-fpm.sock;
+        fastcgi_param  SCRIPT_FILENAME   {{ php_directory }}/index.php;
+        include        fastcgi_params;
+    }
+
+    location ~ ^/([0-9]+\.[0-9]+\.[0-9]+)$ {
+        fastcgi_pass unix:/var/run/php/php$1-fpm.sock;
+        fastcgi_param  SCRIPT_FILENAME   {{ php_directory }}/info.php;
+        include        fastcgi_params;
+    }
+
+    location ~ ^/([0-9]+\.[0-9]+\.[0-9]+)/opcache$ {
+        fastcgi_pass unix:/var/run/php/php$1-fpm.sock;
+        fastcgi_param  SCRIPT_FILENAME   {{ php_directory }}/opcache.php;
+        include        fastcgi_params;
+    }
+}

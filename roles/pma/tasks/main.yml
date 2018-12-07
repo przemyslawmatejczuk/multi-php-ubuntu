@@ -1,0 +1,117 @@
+- set_fact:
+    pma_directory: /home/{{ main_user }}/workspace/tools/pma
+
+
+- name: Create pma directory
+  file:
+    path: "{{ pma_directory }}"
+    group: "{{ main_user }}"
+    owner: "{{ main_user }}"
+    state: directory
+    recurse: true
+  changed_when: false
+
+- name: Clone pma
+  git:
+    repo: https://github.com/phpmyadmin/phpmyadmin.git
+    dest: "{{ pma_directory }}"
+    version: STABLE
+    depth: 1
+    update: yes
+
+- composer:
+    command: install
+    working_dir: "{{ pma_directory }}"
+
+- composer:
+    command: update
+    working_dir: "{{ pma_directory }}"
+  changed_when: false
+
+- name: Copy config
+  template: src=nginx.conf dest="{{ pma_directory }}/.nginx.conf"
+  notify: reload nginx
+
+- name: Create phpmyadmin database
+  mysql_db: name=phpmyadmin state=present encoding=utf8 login_user=root login_password="{{ mysql_root_password }}"
+
+- name: Create phpmyadmin user
+  mysql_user:
+    name: pma
+    password: pma
+    priv: 'phpmyadmin.*:ALL'
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+
+- name: Import create_table.sql
+  mysql_db:
+    state: import
+    name: phpmyadmin
+    target: "{{ pma_directory }}/sql/create_tables.sql"
+    login_user: pma
+    login_password: pma
+  changed_when: false
+
+- name: "Make sessions path for pma"
+  file: path="{{ pma_directory }}/sessions" state=directory
+
+- name: acl1
+  acl:
+    path: "{{ pma_directory }}/sessions"
+    entity: "{{ item }}"
+    etype: user
+    permissions: rwX
+    default: yes
+    recursive: yes
+    state: present
+  with_items:
+    - nginx
+    - www-data
+    - "{{ main_user }}"
+
+- name: acl2
+  acl:
+    path: "{{ pma_directory }}/sessions"
+    entity: "{{ item }}"
+    etype: user
+    permissions: rwX
+    recursive: yes
+    state: present
+  with_items:
+    - nginx
+    - www-data
+    - "{{ main_user }}"
+
+
+- name: "Make tmp path for pma"
+  file: path="{{ pma_directory }}/tmp" state=directory
+
+- name: "ACL for temporary dir #1"
+  acl:
+    path: "{{ pma_directory }}/tmp"
+    entity: "{{ item }}"
+    etype: user
+    permissions: rwX
+    default: yes
+    recursive: yes
+    state: present
+  with_items:
+    - nginx
+    - www-data
+    - "{{ main_user }}"
+
+- name: "ACL for temporary dir #2"
+  acl:
+    path: "{{ pma_directory }}/tmp"
+    entity: "{{ item }}"
+    etype: user
+    permissions: rwX
+    recursive: yes
+    state: present
+  with_items:
+    - nginx
+    - www-data
+    - "{{ main_user }}"
+
+- name: phpmyadmin config
+  template: src=config.inc.php.j2 dest="{{ pma_directory }}/config.inc.php" backup=yes

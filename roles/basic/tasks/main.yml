@@ -1,0 +1,17 @@
+- apt: name="{{ packages.repo }}" cache_valid_time="{{ apt_cache_time }}" state=present
+
+- apt: deb="{{item}}" cache_valid_time="{{ apt_cache_time }}" state=present
+  with_items: "{{ packages.debs }}"
+
+- snap: name="{{ packages.snaps }}" state=present
+
+- name: "Add {{ main_user }} to sudoers"
+  lineinfile: "dest=/etc/sudoers regexp='{{ main_user }} ALL' line='{{ main_user }} ALL=(ALL) NOPASSWD: ALL' state=present"
+
+- name: "Update max_user_watches on ON"
+  sysctl:
+    name: fs.inotify.max_user_watches
+    value: 524288
+    sysctl_set: yes
+    state: present
+    reload: yes

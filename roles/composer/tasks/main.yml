@@ -1,0 +1,46 @@
+---
+- name: download composer
+  get_url:
+    url: https://getcomposer.org/installer
+    dest: /tmp/installer
+
+- name: install composer
+  shell: cat /tmp/installer | php -- --install-dir=/usr/local/bin --filename=composer
+  args:
+    creates: /usr/local/bin/composer
+
+- name: "Install composer script"
+  template:
+    src: composer.sh
+    dest: "/usr/local/bin/composer-no-config"
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: Composer plugin
+  composer:
+    command: require
+    global_command: yes
+    arguments: hirak/prestissimo
+  become_user: "{{ main_user }}"
+
+- cron:
+    name: SHELL
+    env: yes
+    value: /bin/bash
+    user: '{{ item }}'
+  with_items: ['{{ main_user }}', 'root']
+
+- cron:
+    name: PATH
+    env: yes
+    value: /bin:/usr/bin:/usr/sbin:/usr/local/bin:.
+    insertafter: SHELL
+    user: '{{ item }}'
+  with_items: ['{{ main_user }}', 'root']
+
+- cron:
+    name: "composer update"
+    special_time: daily
+    job: "/usr/local/bin/composer self-update -q"
+    user: root

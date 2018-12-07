@@ -1,0 +1,20 @@
+- name: docker | apt_key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: docker | repository
+  apt_repository: filename=docker repo="deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable" state=present update_cache=yes
+
+- name: docker | install
+  apt:
+    name:
+      - docker-ce
+      - docker-compose
+    state: present
+
+- name: docker | add user to group
+  user:
+    name: "{{ main_user }}"
+    groups: docker
+    append: yes

@@ -1,0 +1,16 @@
+main_user: flies
+
+apt_cache_time: 86400
+
+packages:
+  repo:
+    - curl
+    - git
+    - net-tools
+    - redis-server
+
+  debs: []
+  # i.e. https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+
+  snaps: []
+  # i.e. phpstorm

@@ -1,0 +1,11 @@
+{% for php in php_versions %}
+
+upstream php-{{ php.version }} {
+    server unix:/var/run/php/php{{ php.version }}-fpm.sock;
+}
+
+{% endfor %}
+
+upstream php {
+    server unix:/var/run/php-fpm.sock;
+}

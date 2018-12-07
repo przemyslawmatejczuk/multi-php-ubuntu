@@ -1,0 +1,26 @@
+- name: "Uninstall postfix"
+  apt: name=postfix state=absent
+
+- name: "Uninstall exim4"
+  apt: name=exim4 state=absent
+
+- name: "Make sure /opt exists"
+  file: path=/opt state=directory mode=0755 owner=root group=root
+
+- name: "Download binary"
+  get_url: url=https://github.com/mailhog/MailHog/releases/download/v1.0.0/MailHog_linux_amd64 dest=/opt/mailhog mode=0755
+
+- name: "Install service"
+  template:
+    src: service.j2
+    dest: "/etc/systemd/system/mailhog.service"
+    mode: 0664
+  notify:
+    - "restart mailhog"
+
+- name: Ensure mailhog is enabled and will start on boot.
+  service: name=mailhog state=started enabled=yes
+
+- name: Copy config
+  template: src=nginx.conf dest="/etc/nginx/conf.d/mailhog.conf"
+  notify: reload nginx

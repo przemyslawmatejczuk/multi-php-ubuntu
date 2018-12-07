@@ -1,0 +1,42 @@
+- name: Add apt key for 10.1
+  become: true
+  apt_key:
+    id: '0xF1656F24C74CD1D8'
+    keyserver: keyserver.ubuntu.com
+    state: present
+
+- name: Add repository for Debian
+  become: true
+  apt_repository: filename=mariadb repo="deb [arch=amd64] http://ftp.utexas.edu/mariadb/repo/{{ mariadb_version }}/ubuntu {{ ansible_distribution_release }} main" state=present update_cache=yes
+
+- name: Check if mariadb is installed
+  command: "dpkg -s mariadb-server-{{ mariadb_version }}"
+  register: mariadb_check
+  ignore_errors: yes
+  failed_when: false
+  changed_when: false
+  check_mode: no
+
+- name: Preset mariadb password
+  debconf: name=mariadb-server-{{ mariadb_version }}
+    question='{{ item.question }}'
+    value='{{ item.value }}'
+    vtype='{{ item.vtype }}'
+  with_items:
+    - { question: 'mysql-server/root_password', value: '{{ mysql_root_password }}', vtype: 'password' }
+    - { question: 'mysql-server/root_password_again', value: '{{ mysql_root_password }}', vtype: 'password' }
+  when: mariadb_check.stdout.find('install ok installed') == -1
+
+- name: Install mariadb
+  apt:
+    name:
+      - mariadb-client
+      - mariadb-server-{{ mariadb_version }}
+      - python-mysqldb
+    state: present
+
+- name: "Install mysql config"
+  template:
+    src: mysql.cnf
+    dest: "/etc/mysql/conf.d/mysql.cnf"
+  notify: restart mysql
