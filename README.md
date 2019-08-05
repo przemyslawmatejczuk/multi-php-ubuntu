@@ -18,7 +18,10 @@ sudo apt-get install -y ansible git
 ##### First run
 - clone this repository
 - create vars files based on vars/*.yml.dist
+- edit `main_user` in main.yml
+- edit php versions in php.yml
 - run `ansible-playbook site.yml`
+
 
 ##### Services
 - http://pma.loc - phpmyadmin
@@ -28,3 +31,11 @@ sudo apt-get install -y ansible git
 
 ##### Commands
 - restart all php services `sudo php-fpm-restart`
+
+
+##### Sample vhost
+- create project dir in /home/[username]/workspace with .nginx.conf file
+- edit `server_name`, set `$project_root` to project path
+- view file example.conf for example configuration
+- restart nginx
+
