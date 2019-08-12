@@ -1,6 +1,11 @@
-- name: "systemd-resolved fix"
-  lineinfile: "dest=/etc/systemd/resolved.conf regexp='^DNS=127.0.0.1' line='DNS=127.0.0.1' state=present"
-  notify: "restart systemd-resolved"
+- name: Make DNS lookup
+  template:
+    src: resolv.conf
+    dest: "/etc/resolv.conf"
+
+- name: Disable systemd-resolved
+  become: yes
+  command: systemctl disable systemd-resolved.service
 
 - meta: flush_handlers
 
