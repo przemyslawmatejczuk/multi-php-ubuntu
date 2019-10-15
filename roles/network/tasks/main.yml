@@ -1,7 +1,14 @@
-- name: Make DNS lookup
+- name: Install resolvconf
+  apt: name=resolvconf state=present
+
+- name: Copy base for resolvconf
   template:
-    src: resolv.conf
-    dest: "/etc/resolv.conf"
+    src: base
+    dest: "/etc/resolvconf/resolv.conf.d/base"
+
+- name: Update resolv.conf
+  become: yes
+  command: resolvconf -u
 
 - name: Disable systemd-resolved
   become: yes
