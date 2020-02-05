@@ -16,6 +16,7 @@
     dest: "/etc/systemd/system/mailhog.service"
     mode: 0664
   notify:
+    - "reload systemd"
     - "restart mailhog"
 
 - name: Ensure mailhog is enabled and will start on boot.

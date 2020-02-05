@@ -1,0 +1,3 @@
+#!/bin/bash
+
+/opt/phpfarm/inst/bin/php-{{ php.version }} -n -c /opt/phpfarm/inst/configs/{{ php.version }}/php.ini -d memory_limit=-1  /usr/local/bin/composer.phar "$@"

@@ -24,4 +24,4 @@ php_versions:
       - {name: "redis" }
       - {name: "xdebug" }
 
-default_php: 7.2.26
+default_php: "{{ (php_versions|last).version }}"

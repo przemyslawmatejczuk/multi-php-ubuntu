@@ -62,3 +62,10 @@
 
 - file: src=/opt/phpfarm/inst/bin/php-{{ php.version }} dest=/usr/local/bin/php{{ php.major_default|default(false) }} state=link
   when: php.major_default|default(false)
+
+- name: "Install composer for {{ php.version }}"
+  template:
+    src: composer.sh.j2
+    dest: "/usr/local/bin/composer{{ php.major_default|default(false) }}"
+    mode: 0755
+  when: php.major_default|default(false)

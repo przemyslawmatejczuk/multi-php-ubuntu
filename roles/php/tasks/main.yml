@@ -64,6 +64,7 @@
   with_items: "{{ php_versions }}"
   loop_control:
     loop_var: php
+  when: php.old|default(false) == false
 
 - name: "Install php-fpm restart script"
   template:
@@ -91,24 +92,26 @@
   loop_control:
     loop_var: php
 
-- name: "Copy global php.ini"
-  template:
-    src: php.ini-global.j2
-    dest: "/opt/phpfarm/inst/configs/global.ini"
-  notify:
-    - restart php-fpms
+- file: path="/opt/phpfarm/inst/configs/global.ini" state=absent
+- file: path="/opt/phpfarm/inst/configs/{{ php.version }}/global.ini" state=absent
+  with_items: "{{ php_versions }}"
+  loop_control:
+    loop_var: php
 
-- file: src=/opt/phpfarm/inst/configs/global.ini dest="/opt/phpfarm/inst/configs/{{ php.version }}/global.ini" state=link
+- name: Create php.ini by version
+  template:
+    src: php.ini-by-version.j2
+    dest: "/opt/phpfarm/inst/configs/{{ php.version }}/php.ini"
   with_items: "{{ php_versions }}"
   loop_control:
     loop_var: php
   notify:
     - restart php-fpms
 
-- name: Create php.ini by version
+- name: Create xdebug.ini
   template:
-    src: php.ini-by-version.j2
-    dest: "/opt/phpfarm/inst/configs/{{ php.version }}/php.ini"
+    src: xdebug.ini-by-version.j2
+    dest: "/opt/phpfarm/inst/configs/{{ php.version }}/xdebug.ini"
   with_items: "{{ php_versions }}"
   loop_control:
     loop_var: php
