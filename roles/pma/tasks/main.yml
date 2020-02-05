@@ -13,25 +13,35 @@
 
 - set_fact:
     phpmyadmin_url: "https://www.phpmyadmin.net/downloads/phpMyAdmin-{{ phpmyadmin_version }}-english.tar.gz"
-    when: phpmyadmin_version is 'latest'
+  when: phpmyadmin_version == 'latest'
 
 - set_fact:
     phpmyadmin_url: "https://files.phpmyadmin.net/phpMyAdmin/{{ phpmyadmin_version }}/phpMyAdmin-{{ phpmyadmin_version }}-english.tar.gz"
-    when: phpmyadmin_version is not 'latest'
+
+  when: phpmyadmin_version != 'latest'
+
+- file:
+    state: directory
+    path: "/tmp/pma-{{ phpmyadmin_version }}"
+
 
 - unarchive:
     src: "{{ phpmyadmin_url }}"
-    dest: "/tmp"
+    dest: "/tmp/pma-{{ phpmyadmin_version }}"
     remote_src: yes
+    extra_opts: [--strip-components=1]
   register: changed
 
-#- debug: msg="{{ changed }}"
-
 - synchronize:
-    src: /tmp/phpMyAdmin-{{ phpmyadmin_version }}-english/
+    src: "/tmp/pma-{{ phpmyadmin_version }}/"
     dest: "{{ pma_directory }}"
     delete: yes
     recursive: yes
+    rsync_opts:
+      - "--exclude=config.inc.php"
+      - "--exclude=sessions"
+      - "--exclude=tmp"
+      - "--exclude=.nginx.conf"
   delegate_to: "{{ inventory_hostname }}"
 
 - name: Copy config

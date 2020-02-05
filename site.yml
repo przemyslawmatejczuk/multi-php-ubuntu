@@ -1,5 +1,6 @@
 - name: setup multi php environment
   hosts: localhost
+  gather_facts: no
   vars_files:
     - vars/main.yml
     - vars/php.yml
