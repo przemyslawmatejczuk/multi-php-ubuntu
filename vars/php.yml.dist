@@ -1,3 +1,5 @@
+phpmyadmin_version: latest
+
 php_versions:
 
   - version: "7.2.26"

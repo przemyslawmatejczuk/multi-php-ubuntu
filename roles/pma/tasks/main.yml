@@ -11,22 +11,28 @@
     recurse: true
   changed_when: false
 
-- name: Clone pma
-  git:
-    repo: https://github.com/phpmyadmin/phpmyadmin.git
+- set_fact:
+    phpmyadmin_url: "https://www.phpmyadmin.net/downloads/phpMyAdmin-{{ phpmyadmin_version }}-english.tar.gz"
+    when: phpmyadmin_version is 'latest'
+
+- set_fact:
+    phpmyadmin_url: "https://files.phpmyadmin.net/phpMyAdmin/{{ phpmyadmin_version }}/phpMyAdmin-{{ phpmyadmin_version }}-english.tar.gz"
+    when: phpmyadmin_version is not 'latest'
+
+- unarchive:
+    src: "{{ phpmyadmin_url }}"
+    dest: "/tmp"
+    remote_src: yes
+  register: changed
+
+#- debug: msg="{{ changed }}"
+
+- synchronize:
+    src: /tmp/phpMyAdmin-{{ phpmyadmin_version }}-english/
     dest: "{{ pma_directory }}"
-    version: STABLE
-    depth: 1
-    update: yes
-
-- composer:
-    command: install
-    working_dir: "{{ pma_directory }}"
-
-- composer:
-    command: update
-    working_dir: "{{ pma_directory }}"
-  changed_when: false
+    delete: yes
+    recursive: yes
+  delegate_to: "{{ inventory_hostname }}"
 
 - name: Copy config
   template: src=nginx.conf dest="{{ pma_directory }}/.nginx.conf"
