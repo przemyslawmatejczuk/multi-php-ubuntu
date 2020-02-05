@@ -17,6 +17,7 @@
       - libmagickwand-dev
       - libmysqlclient-dev
       - libzip-dev
+      - libsodium-dev
     state: present
 
 - import_tasks: openssl.yml
