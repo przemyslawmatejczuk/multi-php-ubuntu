@@ -1,20 +1,27 @@
 php_versions:
 
-  - version: "7.2.21"
+  - version: "7.2.26"
     major_default: 7.2
     modules:
-      - {name: "apcu", version: "5.1.17"}
-      - {name: "imagick"}
-      - {name: "redis", version: 5.0.2 }
-      - {name: "xdebug", version: 2.7.2 }
+      - {name: "apcu"}
+      - {name: "imagick" }
+      - {name: "redis" }
+      - {name: "xdebug" }
 
-  - version: "7.3.8"
+  - version: "7.3.13"
     major_default: 7.3
     modules:
-      - {name: "apcu", version: "5.1.17"}
-      - {name: "imagick"}
-      - {name: "redis", version: 5.0.2 }
-      - {name: "xdebug", version: 2.7.2 }
+      - {name: "apcu"}
+      - {name: "imagick" }
+      - {name: "redis" }
+      - {name: "xdebug" }
 
+  - version: "7.4.1"
+    major_default: 7.4
+    modules:
+      - {name: "apcu"}
+      - {name: "imagick" }
+      - {name: "redis" }
+      - {name: "xdebug" }
 
-default_php: 7.2.21
+default_php: 7.2.26
