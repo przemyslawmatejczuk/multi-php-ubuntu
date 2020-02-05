@@ -18,6 +18,8 @@
       - libmysqlclient-dev
       - libzip-dev
       - libsodium-dev
+      - libsqlite3-dev
+      - libonig-dev
     state: present
 
 - import_tasks: openssl.yml
