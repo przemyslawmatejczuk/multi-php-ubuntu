@@ -4,7 +4,7 @@
 - name: Install nginx repo
   apt_repository:
     filename: nginx
-    repo: "deb https://nginx.org/packages/ubuntu/ {{ ansible_distribution_release }} nginx"
+    repo: "deb [arch=amd64] https://nginx.org/packages/ubuntu/ {{ ansible_distribution_release }} nginx"
     update_cache: yes
 
 - name: Install nginx
