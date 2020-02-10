@@ -60,6 +60,11 @@
     src: options-5.5+.sh.j2
     dest: "/opt/phpfarm/custom/options-7.sh"
 
+- name: "Install phpfarm options for php-7.4"
+  template:
+    src: options-7.4+.sh.j2
+    dest: "/opt/phpfarm/custom/options-7.4.sh"
+
 - file: src=/usr/include/x86_64-linux-gnu/curl dest=/usr/local/include/curl state=link
 
 - name: compile php versions
