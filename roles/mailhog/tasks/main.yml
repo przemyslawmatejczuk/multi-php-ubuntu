@@ -8,7 +8,7 @@
   file: path=/opt state=directory mode=0755 owner=root group=root
 
 - name: "Download binary"
-  get_url: url=https://github.com/mailhog/MailHog/releases/download/v1.0.0/MailHog_linux_amd64 dest=/opt/mailhog mode=0755
+  get_url: url=https://github.com/mailhog/MailHog/releases/download/v1.0.1/MailHog_linux_amd64 dest=/opt/mailhog mode=0755
 
 - name: "Install service"
   template:
